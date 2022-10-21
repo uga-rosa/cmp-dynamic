@@ -94,14 +94,44 @@ end
 
 ---@param str string
 ---@return string
+---The following directives can be embedded in the format string.
+---     %Y : Year with century as a decimal number.
+---     %y : Year without century as a decimal number [00,99].
+---
+---     %m : Month as a decimal number [01,12].
+---     %B : Locale’s full month name.
+---     %b : Locale’s abbreviated month name.
+---
+---     %d : Day of the month as a decimal number [01,31].
+---     %e : Same as %d, but filled by the blank; " 1", "31"
+---     %A : Locale’s full weekday name.
+---     %a : Locale’s abbreviated weekday name
+---     %j : Day of the year as a decimal number [001,366].
+---     %w : Weekday as a decimal number [0(Sunday),6].
+---
+---     %H : Hour (24-hour clock) as a decimal number [00,23].
+---     %I : Hour (12-hour clock) as a decimal number [01,12].
+---     %p : Locale’s equivalent of either AM or PM.
+---     %k : Same as %H, but filled by the blank; " 0", "23"
+---     %l : Same as %I, but filled by the blank; " 1", "12"
+---
+---     %M : Minute as a decimal number [00,59].
+---
+---     %S : Second as a decimal number [00,61].
+---
+---     %c : Locale’s appropriate date and time representation.
+---     %% : A literal '%' character.
 function Date:format(str)
     local year = self._data.year
     local month = self._data.month
     local date = self._data.date
     local day = self._data.day
+    local ydate = self._data.ydate
     local hours = self._data.hours
     local minutes = self._data.minutes
     local seconds = self._data.seconds
+
+    str = str:gsub("%%c", "%%a %%b %%d %%H:%%M:%%S %%Y")
 
     str = str:gsub("%%Y", year) -- 2022
     str = str:gsub("%%y", year % 100) -- 22
@@ -112,7 +142,7 @@ function Date:format(str)
 
     str = str:gsub("%%d", ("%02d"):format(date)) -- 01, 31
     str = str:gsub("%%e", ("%2d"):format(date)) -- " 1", "31"
-    -- str = str:gsub("%%j", ?) -- yday; 1, 366
+    str = str:gsub("%%j", ("%03d"):format(ydate)) -- 001, 366
     str = str:gsub("%%A", self._day_name.full[day + 1]) -- "Sunday", "Saturday"
     str = str:gsub("%%a", self._day_name.short[day + 1]) -- "Sun", "Sat"
     str = str:gsub("%%w", day) -- day; Sunday is 0, Saturday is 6.
@@ -120,7 +150,7 @@ function Date:format(str)
     local h = hours % 12
     h = h == 0 and 12 or h
     str = str:gsub("%%H", ("%02d"):format(hours)) -- 00, 23
-    str = str:gsub("%%h", ("%02d"):format(h)) -- 01, 12
+    str = str:gsub("%%I", ("%02d"):format(h)) -- 01, 12
     str = str:gsub("%%k", ("%2d"):format(hours)) -- " 0", "23"
     str = str:gsub("%%l", ("%2d"):format(h)) -- " 1", "12"
     str = str:gsub("%%p", hours < 12 and self._am_pm_name[1] or self._am_pm_name[2]) -- AM, PM
@@ -128,6 +158,8 @@ function Date:format(str)
     str = str:gsub("%%M", ("%02d"):format(minutes)) -- 00, 59
 
     str = str:gsub("%%S", ("%02d"):format(seconds)) -- 00, 59
+
+    str = str:gsub("%%%%", "%%")
 
     return str
 end

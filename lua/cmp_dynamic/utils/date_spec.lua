@@ -39,9 +39,10 @@ describe("Date test", function()
 
     it("format", function()
         local new_year_2022 = Date.new(2022)
+        assert.equal("Sat Jan 01 00:00:00 2022", new_year_2022:format("%c"))
         assert.equal(
             "2022/22/01/January/Jan/01/ 1/Saturday/Sat/6/00/12/ 0/12/AM/00/00",
-            new_year_2022:format("%Y/%y/%m/%B/%b/%d/%e/%A/%a/%w/%H/%h/%k/%l/%p/%M/%S")
+            new_year_2022:format("%Y/%y/%m/%B/%b/%d/%e/%A/%a/%w/%H/%I/%k/%l/%p/%M/%S")
         )
     end)
 
