@@ -19,9 +19,11 @@ require("cmp_dynamic").setup({
 
 # Define completion items
 
-Here is an example of adding today's date.
+Here is an example of defining completion items.
 
 ```lua
+local Date = require("cmp_dynamic.utils.date")
+
 require("cmp_dynamic").setup({
     {
         label = "today",
@@ -33,6 +35,15 @@ require("cmp_dynamic").setup({
         },
         cache = true -- default: false
     },
+    {
+        label = "next Monday",
+        insertText = 1,
+        cb = {
+            function()
+                return Date.new():add_date(7):day(1):format("%Y/%m/%d")
+            end,
+        },
+    },
 })
 ```
 
@@ -41,4 +52,4 @@ Basically, items conforms to LSP's completionItem, but `cb` and `cache` are spec
 `cb` is a list of functions, which is evaluated at the time the complete is called;
 if `cache` is false, it is evaluated each time, but if `cache` is true, the first evaluation result is stored and used.
 
-You can use the result of `cb` evaluation by making value the key of the `cb`, as in `insertText = 1` or `documentation = 1`.
+You can use the result of `cb` evaluation by making value the key of the `cb`, as in `insertText = 1`.
