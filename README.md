@@ -26,7 +26,6 @@ require("cmp_dynamic").setup({
     {
         label = "today",
         insertText = 1,
-        documentation = 1,
         cb = {
             function()
                 return os.date("%Y/%m/%d")
