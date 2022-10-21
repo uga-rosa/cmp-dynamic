@@ -166,16 +166,72 @@ describe("Date test", function()
             assert.equal(16, date:hours())
         end)
         it("minutes", function()
-            assert.equal("2022/01/31", date:format("%Y/%m/%d"))
-            assert.equal("12:34:56", date:format("%H:%M:%S"))
+            assert.equal("2022/01/31 12:34:56", date:format("%Y/%m/%d %H:%M:%S"))
             date:add_minutes(1000) -- 16h 40m
-            assert.equal("2022/02/01", date:format("%Y/%m/%d"))
-            assert.equal("05:14:56", date:format("%H:%M:%S"))
+            assert.equal("2022/02/01 05:14:56", date:format("%Y/%m/%d %H:%M:%S"))
         end)
         it("seconds", function()
             assert.equal("12:34:56", date:format("%H:%M:%S"))
             date:add_seconds(10000) -- 2h 46m 40s
             assert.equal("15:21:36", date:format("%H:%M:%S"))
+        end)
+    end)
+
+    describe("set", function()
+        it("month name", function()
+            local month_name_jp = {
+                "1月",
+                "2月",
+                "3月",
+                "4月",
+                "5月",
+                "6月",
+                "7月",
+                "8月",
+                "9月",
+                "10月",
+                "11月",
+                "12月",
+            }
+            local month_tbl = { full = month_name_jp, short = month_name_jp }
+            -- local
+            date:set_month_name(month_tbl)
+            assert.equal("1月", date:format("%B"))
+            assert.equal("January", Date.new(2022, 1, 1):format("%B"))
+            -- global
+            Date:set_month_name(month_tbl)
+            assert.equal("1月", Date.new(2022, 1, 1):format("%B"))
+        end)
+        it("day name", function()
+            local day_tbl = {
+                full = {
+                    "日曜日",
+                    "月曜日",
+                    "火曜日",
+                    "水曜日",
+                    "木曜日",
+                    "金曜日",
+                    "土曜日",
+                },
+                short = { "日", "月", "火", "水", "木", "金", "土" },
+            }
+            -- local
+            date:set_day_name(day_tbl)
+            assert.equal("月曜日/月", date:format("%A/%a"))
+            assert.equal("Monday", Date.new(2022, 1, 31):format("%A"))
+            -- global
+            Date:set_day_name(day_tbl)
+            assert.equal("月曜日/月", Date.new(2022, 1, 31):format("%A/%a"))
+        end)
+        it("AM/PM", function()
+            local am_pm_jp = { "午前", "午後" }
+            -- local
+            date:set_am_pm_name(am_pm_jp)
+            assert.equal("午後", date:format("%p"))
+            assert.equal("PM", Date.new(2022, 1, 31, 12, 34, 56):format("%p"))
+            -- global
+            Date:set_am_pm_name(am_pm_jp)
+            assert.equal("午後", Date.new(2022, 1, 31, 12, 34, 56):format("%p"))
         end)
     end)
 end)

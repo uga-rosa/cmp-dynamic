@@ -13,6 +13,7 @@ local assert_range = utils.assert_range
 
 ---@alias month_name { full: string[], short: string[] }
 ---@alias day_name { full: string[], short: string[] }
+---@alias am_pm_name string[] # { am, pm }
 
 ---@class Date
 ---@field private _data date_data
@@ -406,9 +407,7 @@ function Date:set_month_name(tbl)
     if tbl.short then
         assert(#tbl.short == 12, "The length of tbl.short must be 7.")
     end
-    for k, v in pairs(tbl) do
-        self._month_name[k] = v
-    end
+    self._month_name = tbl
 end
 
 ---@param tbl day_name
@@ -424,19 +423,17 @@ function Date:set_day_name(tbl)
     if tbl.short then
         assert(#tbl.short == 7, "The length of tbl.short must be 7.")
     end
-    for k, v in pairs(tbl) do
-        self._day_name[k] = v
-    end
+    self._day_name = tbl
 end
 
----@param am string
----@param pm string
-function Date:set_am_pm_name(am, pm)
+---@param tbl am_pm_name
+function Date:set_am_pm_name(tbl)
     vim.validate({
-        am = { am, "s" },
-        pm = { pm, "s" },
+        tbl = { tbl, "t" },
+        am = { tbl[1], "s" },
+        pm = { tbl[2], "s" },
     })
-    self._am_pm_name = { am, pm }
+    self._am_pm_name = tbl
 end
 
 return Date
