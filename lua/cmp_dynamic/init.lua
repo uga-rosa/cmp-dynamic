@@ -7,12 +7,12 @@ source.__index = source
 ---@type lsp.CompletionItem[]
 source._items = {}
 
-function source.new()
+source.new = function()
     return setmetatable({}, source)
 end
 
 ---@return string
-function source:get_debug_name()
+source.get_debug_name = function()
     return "dynamic"
 end
 
@@ -42,7 +42,7 @@ end
 
 ---@param _ cmp.SourceCompletionApiParams
 ---@param callback fun(response: lsp.CompletionResponse)
-function source:complete(_, callback)
+source.complete = function(self, _, callback)
     local completionItems = vim.tbl_map(function(item)
         return resolve(item, not item.data.resolve)
     end, self._items)
@@ -51,14 +51,14 @@ end
 
 ---@param item cmp.dynamic.CompletionItem
 ---@param callback fun(completion_item: lsp.CompletionItem|nil)
-function source:resolve(item, callback)
+source.resolve = function(_, item, callback)
     if item.data.resolve then
         callback(resolve(item, item.data.resolve))
     end
 end
 
 ---@param items cmp.dynamic.CompletionItem[]
-function source.setup(items)
+source.setup = function(items)
     vim.validate({ items = { items, "t" } })
     for i, item in ipairs(items) do
         item.data = {}
