@@ -1,96 +1,78 @@
 ---@class cmp.dynamic.CompletionItem: lsp.CompletionItem
 ---@field public cb function[]
----@field public cache boolean
----@field private _cached boolean
+---@field public resolve boolean
 
 local source = {}
 source.__index = source
+---@type lsp.CompletionItem[]
 source._items = {}
 
 function source.new()
     return setmetatable({}, source)
 end
 
----@param v function|any
----@return any
-local function resolve_fn(v)
-    if type(v) == "function" then
-        return v()
-    else
-        return v
+---@return string
+function source:get_debug_name()
+    return "dynamic"
+end
+
+---@param item cmp.dynamic.CompletionItem
+---@param done boolean
+---@return lsp.CompletionItem
+local function resolve(item, done)
+    local result = {}
+    for k, v in pairs(item) do
+        result[k] = v
     end
+
+    if done then
+        local resolved = vim.tbl_map(function(v)
+            return v()
+        end, item.data.cb)
+
+        for k, v in pairs(item.data) do
+            if type(v) == "number" then
+                result[k] = resolved[v]
+            end
+        end
+    end
+
+    return result
 end
 
 ---@param _ cmp.SourceCompletionApiParams
 ---@param callback fun(response: lsp.CompletionResponse)
 function source:complete(_, callback)
-    ---@type lsp.CompletionItem[]
-    local completionItems = {}
-
-    for _, item in ipairs(self._items) do
-        local completionItem = {}
-
-        local cb = item.cb
-        if not item._cached then
-            cb = vim.tbl_map(resolve_fn, item.cb)
-            if item.cache then
-                item.cb = cb
-                item._cached = true
-            end
-        end
-
-        for k, v in pairs(item) do
-            if k ~= "cb" then
-                if cb[v] then
-                    v = cb[v]
-                end
-                completionItem[k] = v
-            end
-        end
-
-        table.insert(completionItems, completionItem)
-    end
-
+    local completionItems = vim.tbl_map(function(item)
+        return resolve(item, not item.data.resolve)
+    end, self._items)
     callback(completionItems)
 end
 
----@param value any
----@param t string type
----@param accept_nil (boolean|nil)
----@return unknown[]
-local function assert_unknown_or_unknown_list(value, t, accept_nil)
-    if accept_nil and value == nil then
-        return {}
-    end
-
-    local err_msg = ("validate error: It must be (%s|%s[]%s)"):format(
-        t,
-        t,
-        accept_nil and "|nil" or ""
-    )
-
-    if type(value) == t then
-        return { t }
-    elseif vim.tbl_islist(value) then
-        vim.tbl_map(function(v)
-            assert(type(v) == t, err_msg)
-        end, value)
-        return value
-    else
-        error(err_msg)
+---@param item cmp.dynamic.CompletionItem
+---@param callback fun(completion_item: lsp.CompletionItem|nil)
+function source:resolve(item, callback)
+    if item.data.resolve then
+        callback(resolve(item, item.data.resolve))
     end
 end
 
 ---@param items cmp.dynamic.CompletionItem[]
 function source.setup(items)
     vim.validate({ items = { items, "t" } })
-    for _, item in ipairs(items) do
-        vim.validate({
-            item = { item, "t" },
-            ["item.cache"] = { item.cache, "b", true },
-        })
-
-        item.cb = assert_unknown_or_unknown_list(item.cb, "function", true)
+    for i, item in ipairs(items) do
+        item.data = {}
+        item.data.cb = vim.F.if_nil(item.cb, {})
+        item.cb = nil
+        item.data.resolve = vim.F.if_nil(item.resolve, false)
+        item.resolve = nil
+        for k, v in pairs(item) do
+            if type(v) == "number" then
+                item.data[k] = v
+                item[k] = nil
+            end
+        end
+        items[i] = item
     end
     source._items = items
 end
