@@ -79,7 +79,7 @@ end
 
 ---@param items cmp.dynamic.CompletionItem[]
 source.setup = function(items)
-  vim.notify("`setup` is now deprecated. Use `register` instead.")
+  vim.notify("[cmp-dynamic] `setup` is now deprecated. Use `register` instead.")
   source.register(items)
 end
 
