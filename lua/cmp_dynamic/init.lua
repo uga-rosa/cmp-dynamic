@@ -58,7 +58,7 @@ source.resolve = function(_, item, callback)
 end
 
 ---@param items cmp.dynamic.CompletionItem[]
-source.setup = function(items)
+source.register = function(items)
     vim.validate({ items = { items, "t" } })
     for i, item in ipairs(items) do
         item.data = {}
@@ -75,6 +75,12 @@ source.setup = function(items)
         items[i] = item
     end
     source._items = items
+end
+
+---@param items cmp.dynamic.CompletionItem[]
+source.setup = function(items)
+    vim.notify("`setup` is now deprecated. Use `register` instead.")
+    source.register(items)
 end
 
 return source

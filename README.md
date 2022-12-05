@@ -12,7 +12,7 @@ require("cmp").setup({
     },
 })
 
-require("cmp_dynamic").setup({
+require("cmp_dynamic").register({
     -- items
 })
 ```
@@ -24,7 +24,7 @@ Here is an example of defining completion items.
 ```lua
 local Date = require("cmp_dynamic.utils.date")
 
-require("cmp_dynamic").setup({
+require("cmp_dynamic").register({
     {
         label = "today",
         insertText = 1,
