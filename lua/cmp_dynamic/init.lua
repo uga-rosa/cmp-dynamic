@@ -1,86 +1,71 @@
 ---@class cmp.dynamic.CompletionItem: lsp.CompletionItem
----@field public cb function[]
----@field public resolve boolean
+---@field public resolve? boolean
+---@field public label string|function
+---@field public labelDetails? lsp.CompletionItemLabelDetails|function
+---@field public kind? lsp.CompletionItemKind|function
+---@field public tags? lsp.CompletionItemTag[]|function
+---@field public detail? string|function
+---@field public documentation? lsp.MarkupContent|string|function
+---@field public deprecated? boolean|function
+---@field public preselect? boolean|function
+---@field public sortText? string|function
+---@field public filterText? string|function
+---@field public insertText? string|function
+---@field public insertTextFormat? lsp.InsertTextFormat|function
+---@field public insertTextMode? lsp.InsertTextMode|function
+---@field public textEdit? lsp.TextEdit|lsp.InsertReplaceTextEdit|function
+---@field public textEditText? string|function
+---@field public additionalTextEdits? lsp.TextEdit[]|function
+---@field public commitCharacters? string[]|function
+---@field public command? lsp.Command|function
+---@field public data? any|function
 
 local source = {}
-source.__index = source
----@type lsp.CompletionItem[]
-source._items = {}
 
-source.new = function()
-  return setmetatable({}, source)
+function source.new()
+  return setmetatable({}, { __index = source })
 end
 
 ---@return string
-source.get_debug_name = function()
+function source.get_debug_name()
   return "dynamic"
-end
-
----@param item cmp.dynamic.CompletionItem
----@param done boolean
----@return lsp.CompletionItem
-local function resolve(item, done)
-  local result = {}
-  for k, v in pairs(item) do
-    result[k] = v
-  end
-
-  if done then
-    local resolved = vim.tbl_map(function(v)
-      return v()
-    end, item.data.cb)
-
-    for k, v in pairs(item.data) do
-      if type(v) == "number" then
-        result[k] = resolved[v]
-      end
-    end
-  end
-
-  return result
 end
 
 ---@param _ cmp.SourceCompletionApiParams
 ---@param callback fun(response: lsp.CompletionResponse)
-source.complete = function(self, _, callback)
+function source:complete(_, callback)
   local completionItems = vim.tbl_map(function(item)
-    return resolve(item, not item.data.resolve)
+    local new_item = { data = {} }
+    for k, v in pairs(item) do
+      if k == "label" or not item.resolve then
+        -- Required field or evaluate at the first
+        new_item[k] = type(v) == "function" and v() or v
+      elseif type(v) == "function" then
+        -- Store a function
+        new_item.data[k] = v
+      else
+        new_item[k] = v
+      end
+    end
+    return new_item
   end, self._items)
   callback(completionItems)
 end
 
----@param item cmp.dynamic.CompletionItem
+---@param completion_item cmp.dynamic.CompletionItem
 ---@param callback fun(completion_item: lsp.CompletionItem|nil)
-source.resolve = function(_, item, callback)
-  if item.data.resolve then
-    callback(resolve(item, item.data.resolve))
-  end
-end
-
----@param items cmp.dynamic.CompletionItem[]
-source.register = function(items)
-  vim.validate({ items = { items, "t" } })
-  for i, item in ipairs(items) do
-    item.data = {}
-    item.data.cb = vim.F.if_nil(item.cb, {})
-    item.cb = nil
-    item.data.resolve = vim.F.if_nil(item.resolve, false)
-    item.resolve = nil
-    for k, v in pairs(item) do
-      if type(v) == "number" then
-        item.data[k] = v
-        item[k] = nil
-      end
+function source:resolve(completion_item, callback)
+  if completion_item.resolve then
+    for k, v in pairs(completion_item.data) do
+      completion_item[k] = v()
     end
-    items[i] = item
   end
-  source._items = items
+  callback(completion_item)
 end
 
 ---@param items cmp.dynamic.CompletionItem[]
-source.setup = function(items)
-  vim.notify("[cmp-dynamic] `setup` is now deprecated. Use `register` instead.")
-  source.register(items)
+function source.register(items)
+  source._items = items
 end
 
 return source
