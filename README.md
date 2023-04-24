@@ -41,7 +41,7 @@ require("cmp_dynamic").register({
 })
 ```
 
-Basically, items conforms to [LSP's completionItem](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem).
+Basically, items conforms to [LSP's CompletionItem](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItem).
 There is a special key `resolve`, and functions can be specified for any values.
 
 By default, `resolve` is false.

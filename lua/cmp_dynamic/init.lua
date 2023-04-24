@@ -38,7 +38,7 @@ function source:complete(_, callback)
     local new_item = { data = {} }
     for k, v in pairs(item) do
       if k == "label" or not item.resolve then
-        -- Required field or evaluate at the first
+        -- Required field or evaluate first
         new_item[k] = type(v) == "function" and v() or v
       elseif type(v) == "function" then
         -- Store a function
