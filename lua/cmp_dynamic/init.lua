@@ -54,7 +54,7 @@ end
 
 ---@param completion_item cmp.dynamic.CompletionItem
 ---@param callback fun(completion_item: lsp.CompletionItem|nil)
-function source:resolve(completion_item, callback)
+function source.resolve(_, completion_item, callback)
   if completion_item.resolve then
     for k, v in pairs(completion_item.data) do
       completion_item[k] = v()
